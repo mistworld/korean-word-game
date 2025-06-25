@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초성 스크램블 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-status {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .score {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+        }
+
+        .timer {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+        }
+
+        .consonants-display {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .consonants {
+            font-size: 3em;
+            font-weight: bold;
+            letter-spacing: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        #wordInput {
+            width: 70%;
+            padding: 15px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 10px;
+            text-align: center;
+            outline: none;
+            margin-right: 10px;
+        }
+
+        #submitBtn {
+            padding: 15px 25px;
+            font-size: 1.2em;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #submitBtn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        #submitBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            min-height: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #4CAF50;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .error {
+            color: #ff6b6b;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .word-history {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .word-history h3 {
+            margin-bottom: 15px;
+        }
+
+        .submitted-word {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .game-controls {
+            margin-top: 30px;
+        }
+
+        .control-btn {
+            padding: 12px 25px;
+            margin: 0 10px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .new-game-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .new-game-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        .new-round-btn {
+            background: #ffc107;
+            color: black;
+        }
+
+        .new-round-btn:hover {
+            background: #ffb300;
+            transform: translateY(-2px);
+        }
+
+        @keyframes scorePopup {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .score-animation {
+            animation: scorePopup 0.5s ease-in-out;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            .consonants {
+                font-size: 2em;
+                letter-spacing: 10px;
+            }
+            
+            #wordInput {
+                width: 60%;
+                font-size: 1.2em;
+            }
+            
+            .game-status {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎯 초성 스크램블</h1>
+        
+        <div class="game-status">
+            <div class="score">점수: <span id="score">0</span></div>
+            <div class="timer">시간: <span id="timer">180</span>초</div>
+        </div>
+
+        <div class="consonants-display">
+            <div class="consonants" id="consonants">ㄱ ㄴ ㄷ ㄹ ㅁ</div>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="wordInput" placeholder="단어를 입력하세요 (2글자 이상)" maxlength="10">
+            <button id="submitBtn">제출</button>
+        </div>
+
+        <div class="feedback" id="feedback">제시된 초성들 중 일부 또는 전부를 사용해서 단어를 만들어보세요!<br>예: ㄱㄴㄷㄹ → "가나" (2글자), "나라" (2글자), "가나다라" (4글자)</div>
+
+        <div class="word-history">
+            <h3>제출한 단어들</h3>
+            <div id="wordList"></div>
+        </div>
+
+        <div class="game-controls">
+            <button class="control-btn new-round-btn" onclick="newRound()">새 라운드</button>
+            <button class="control-btn new-game-btn" onclick="newGame()">새 게임</button>
+        </div>
+    </div>
+
+    <script>
+        // 게임 상태
+        let currentConsonants = [];
+        let score = 0;
+        let timeLeft = 180;
+        let gameTimer;
+        let submittedWords = [];
+        let gameActive = true;
+
+        // 한글 초성 리스트 (유니코드 순서대로)
+        const consonants = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+        
+        // 게임에서 사용할 기본 초성들 (겹자음 제외)
+        const gameConsonants = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+        
+        // 확장된 한국어 사전 (2글자 이상만)
+        const dictionary = [
+            // 2글자 - 기본 일상 단어들
+            '가게', '가구', '가방', '가족', '각자', '간식', '감자', '강물', '강아지', '개구리',
+            '거리', '게임', '겨울', '결과', '경기', '고기', '고양이', '공부', '과일', '교실',
+            '구름', '국가', '국물', '그림', '기계', '기분', '기술', '길거리', '김치', '까치',
+            '나무', '나비', '나라', '날개', '남자', '내일', '너구리', '노래', '누나', '눈물',
+            '다리', '단어', '달력', '담요', '대화', '도시', '독서', '동물', '동생', '뒷산',
+            '라면', '라디오', '로봇', '리듬', '마음', '만화', '말씀', '머리', '모래', '목표',
+            '바다', '바람', '반찬', '밤하늘', '버스', '별빛', '보물', '부모', '분위기', '비누',
+            '사람', '사진', '산책', '새벽', '생각', '서점', '소나무', '손님', '수업', '숲속',
+            '아기', '아침', '악기', '안경', '앞마당', '여름', '연필', '열쇠', '오늘', '우산',
+            '자동차', '자연', '장난감', '저녁', '전화', '정원', '종이', '주말', '집안', '차례',
+            '책상', '천장', '체험', '축제', '치킨', '카드', '컴퓨터', '코끼리', '타이어', '토끼',
+            '파도', '편지', '폭포', '하늘', '학교', '햇빛', '형제', '화분', '휴식',
+            
+            // 추가 2글자 단어들
+            '살', '설', '솔', '술', '실', '선', '손', '순', '신', '파마', '포스', '마스', '캠프', '택트', '팩트',
+            '날', '널', '놀', '눌', '닐', '날개', '노래', '편곡', '파크', '카피', '카고', '풍경',
+            '팔', '펄', '풀', '필', '폴', '파', '페', '피', '포', '푸',
+            '말', '멀', '물', '밀', '몰', '마', '메', '미', '모', '무',
+            '칼', '컬', '쿨', '킬', '콜', '카', '케', '키', '코', '쿠',
+            '탈', '털', '툴', '틸', '톨', '타', '테', '티', '토', '투',
+            '가수', '감동', '강사', '개발', '거북', '게스트', '고급', '공격', '과자', '교육',
+            '구매', '국민', '권리', '그룹', '기업', '길이', '김밥', '까지', '나이', '남편',
+            '내용', '너무', '네트', '노력', '놀이', '눈썹', '다음', '단계', '달콤', '답안',
+            '대상', '더위', '도움', '동안', '뒤쪽', '드라마', '등급', '라운드', '로그', '리뷰',
+            '마케팅', '만족', '맛집', '머리카락', '메뉴', '모든', '목적', '무료', '문제', '미래',
+            '바로', '반대', '발표', '방법', '배송', '버튼', '번호', '변경', '보통', '부족',
+            '비용', '사업', '상품', '새로', '서비스', '선택', '성공', '소개', '수준', '스타일',
+            '시간', '신청', '실제', '아이템', '안전', '알림', '약속', '어린', '여행', '연락',
+            '영상', '오후', '완성', '요청', '운동', '원하는', '위치', '유명', '이용', '인기',
+            '일정', '자료', '작업', '장소', '전체', '정보', '제품', '조건', '주문', '준비',
+            '지역', '직접', '진행', '차이', '참여', '체크', '최고', '추가', '출발', '카페',
+            '컨텐츠', '태그', '특별', '파일', '포인트', '프로', '할인', '해결', '현재', '홈페이지',
+            
+            // 3글자 단어들
+            '신라', '설날', '날씨', '순례', '선율', '살인', '실눈', '누설',
+            '가족사진', '강남역', '게임기', '고등학교', '나비날개', '다람쥐', '라벤더', '마라톤', 
+            '바나나', '사과나무', '아침밥', '자전거', '차가운', '카메라', '타자기', '파인애플',
+            '파스타', '마스크', '코스프레', '테스트', '캠프파이어',
+            '포스터', '마스터', '케스트', '토스트', '퍼스트',
+            '스마트', '스타트', '스포츠', '스테이크', '스트레스',
+            '컴퓨터', '프로그램', '인터넷', '키보드', '스마트폰',
+            
+            // 4글자 이상
+            '가정교사', '고향집', '나뭇잎', '다정한', '마법사', '바람개비', '사랑해',
+            '아름다운', '자유로운', '차분한', '카페라떼', '타임머신', '파티룸', '하얀눈',
+            '스마트워치', '컴퓨터프로그램', '인터넷쇼핑몰', '마스터카드', '스포츠카'
+        ];
+
+        // 초성 추출 함수
+        function getInitialConsonant(char) {
+            const code = char.charCodeAt(0) - 44032;
+            if (code < 0 || code > 11171) return '';
+            return consonants[Math.floor(code / 588)];
+        }
+
+        // 단어의 초성들 추출
+        function getWordConsonants(word) {
+            return word.split('').map(char => getInitialConsonant(char)).filter(c => c);
+        }
+
+        // 제출된 초성이 현재 초성에 포함되는지 확인
+        function canMakeWord(word) {
+            const wordConsonants = getWordConsonants(word);
+            const availableConsonants = [...currentConsonants];
+            
+            for (let consonant of wordConsonants) {
+                const index = availableConsonants.indexOf(consonant);
+                if (index === -1) return false;
+                availableConsonants.splice(index, 1);
+            }
+            return true;
+        }
+
+        // 새 라운드 시작
+        function newRound() {
+            currentConsonants = [];
+            const numConsonants = Math.floor(Math.random() * 4) + 3; // 3-6개
+            
+            for (let i = 0; i < numConsonants; i++) {
+                const randomConsonant = gameConsonants[Math.floor(Math.random() * gameConsonants.length)];
+                currentConsonants.push(randomConsonant);
+            }
+            
+            document.getElementById('consonants').textContent = currentConsonants.join(' ');
+            document.getElementById('wordInput').value = '';
+            document.getElementById('feedback').textContent = '새로운 초성이 제시되었습니다! 일부 또는 전부를 사용해서 단어를 만드세요!';
+            document.getElementById('wordInput').focus();
+        }
+
+        // 새 게임 시작
+        function newGame() {
+            score = 0;
+            timeLeft = 180; // 3분
+            submittedWords = [];
+            gameActive = true;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('wordList').innerHTML = '';
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('wordInput').disabled = false;
+            
+            if (gameTimer) clearInterval(gameTimer);
+            startTimer();
+            newRound();
+        }
+
+        // 타이머 시작
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // 게임 종료
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameTimer);
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('wordInput').disabled = true;
+            document.getElementById('feedback').innerHTML = `
+                <div class="error">게임 종료! 최종 점수: ${score}점</div>
+                <div>제출한 단어 수: ${submittedWords.length}개</div>
+            `;
+        }
+
+        // 단어 제출
+        function submitWord() {
+            if (!gameActive) return;
+            
+            const input = document.getElementById('wordInput');
+            const word = input.value.trim();
+            const feedback = document.getElementById('feedback');
+            
+            // 단어 길이 체크 (2글자 이상)
+            if (word.length < 2) {
+                feedback.innerHTML = '<div class="error">2글자 이상의 단어만 입력 가능합니다!</div>';
+                input.value = '';
+                return;
+            }
+
+            // 이미 제출한 단어인지 확인
+            if (submittedWords.includes(word)) {
+                feedback.innerHTML = '<div class="error">이미 제출한 단어입니다!</div>';
+                input.value = '';
+                return;
+            }
+
+            // 초성 체크
+            if (!canMakeWord(word)) {
+                feedback.innerHTML = '<div class="error">제시된 초성으로 만들 수 없는 단어입니다!</div>';
+                input.value = '';
+                return;
+            }
+
+            // 사전 체크
+            if (!dictionary.includes(word)) {
+                feedback.innerHTML = '<div class="error">사전에 없는 단어이거나 인정되지 않는 단어입니다!</div>';
+                input.value = '';
+                return;
+            }
+
+            // 점수 계산
+            let points = 0;
+            if (word.length === 2) points = 10;
+            else if (word.length === 3) points = 40;
+            else if (word.length === 4) points = 100;
+            else if (word.length >= 5) points = 200;
+
+            // 보너스 시간 추가
+            if (word.length === 3) timeLeft += 5;
+            else if (word.length === 4) timeLeft += 15;
+            else if (word.length >= 5) timeLeft += 30;
+
+            score += points;
+            submittedWords.push(word);
+
+            // UI 업데이트
+            document.getElementById('score').textContent = score;
+            document.getElementById('timer').textContent = timeLeft;
+            
+            // 점수 애니메이션
+            const scoreElement = document.getElementById('score').parentElement;
+            scoreElement.classList.add('score-animation');
+            setTimeout(() => scoreElement.classList.remove('score-animation'), 500);
+
+            feedback.innerHTML = `<div class="success">✅ "${word}" (+${points}점${word.length >= 3 ? ', 시간 보너스!' : ''})</div>`;
+
+            // 제출한 단어 목록에 추가
+            const wordList = document.getElementById('wordList');
+            const wordElement = document.createElement('span');
+            wordElement.className = 'submitted-word';
+            wordElement.textContent = `${word} (${points}점)`;
+            wordList.appendChild(wordElement);
+
+            input.value = '';
+            input.focus();
+        }
+
+        // 이벤트 리스너
+        document.getElementById('submitBtn').addEventListener('click', submitWord);
+        document.getElementById('wordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitWord();
+        });
+
+        // 게임 시작
+        newGame();
+    </script>
+</body>
+</html>
